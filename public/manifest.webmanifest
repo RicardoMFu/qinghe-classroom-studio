@@ -1,0 +1,12 @@
+{
+  "name": "青禾班主任工作台",
+  "short_name": "青禾工作台",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f0e7",
+  "theme_color": "#153c36",
+  "description": "成绩、座次、值日与班务一站式管理",
+  "icons": [
+    { "src": "./app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
