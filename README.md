@@ -25,7 +25,8 @@ npm run preview
 ## 已落地功能
 
 - 直接读取学校成绩 Excel 的“七年级15班”工作表，仅保留姓名与七科等级；身份号、学籍号、考号不导入。
-- 同时支持 CSV 成绩导入、校验、统计、学科筛选和排名。
+- 每次 Excel/CSV 导入都会创建独立考试档案，不再覆盖上一份成绩；可按考试和学科切换。
+- 排名会显示相对上一次有效考试的变化；点击学生可查看综合或单科的历次成绩轨迹。
 - 新增学生并同步到名册与座次表。
 - 两次点击交换座位，避免拖拽误操作。
 - 值日安排编辑、待办新增/完成与刷新持久化。
@@ -40,7 +41,7 @@ npm run preview
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_PUBLISHABLE_KEY`
 5. 在 Supabase Auth URL Configuration 中加入线上地址 `https://ricardomfu.github.io/qinghe-classroom-studio/`。
-6. 重新运行 GitHub Pages 工作流。登录后由授权教师导入原始 Excel，其他已登录成员会看到同一份最新数据。
+6. 重新运行 GitHub Pages 工作流。登录后由授权教师导入原始 Excel，考试历史会随工作区一起同步，其他已登录成员可切换并查看同一份最新数据。
 
 浏览器中只允许使用 publishable key。`service_role` key 不得写入 `.env`、前端代码或 GitHub。
 

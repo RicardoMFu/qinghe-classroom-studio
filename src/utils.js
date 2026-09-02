@@ -33,6 +33,80 @@ export function isGradeScale(students) {
   return students.some((student) => gradeSubjects.some((subject) => typeof student.scores?.[subject] === 'string'));
 }
 
+export function studentPerformanceIndex(student) {
+  const values = gradeSubjects.map((subject) => gradeValue(student?.scores?.[subject])).filter(Boolean);
+  if (!values.length) return null;
+  const gradeScale = values.every((value) => value <= gradeOrder.length);
+  return gradeScale
+    ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length / gradeOrder.length * 100)
+    : Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1));
+}
+
+export function createExamRecord({ id, name, date, students, sourceName = '' }) {
+  const examName = String(name ?? '').trim();
+  if (!examName) throw new Error('请输入考试名称');
+  if (!Array.isArray(students) || !students.length) throw new Error('考试中没有学生成绩');
+  const examDate = String(date || new Date().toISOString().slice(0, 10));
+  return {
+    id: id || `exam-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: examName,
+    date: examDate,
+    sourceName,
+    createdAt: new Date().toISOString(),
+    students: structuredClone(students)
+  };
+}
+
+export function appendExam(exams, exam) {
+  if (!exam?.id) throw new Error('考试记录缺少标识');
+  if ((exams || []).some((item) => item.id === exam.id)) throw new Error('考试记录已存在');
+  return [...(exams || []), exam];
+}
+
+export function migrateExamState(storedExams, legacyStudents = []) {
+  const exams = Array.isArray(storedExams)
+    ? storedExams.filter((exam) => exam?.id && Array.isArray(exam.students))
+    : Array.isArray(storedExams?.exams)
+      ? storedExams.exams.filter((exam) => exam?.id && Array.isArray(exam.students))
+      : [];
+  if (exams.length) {
+    const requestedId = storedExams?.activeExamId;
+    return { exams, activeExamId: exams.some((exam) => exam.id === requestedId) ? requestedId : exams.at(-1).id };
+  }
+  if (!legacyStudents.length) return { exams: [], activeExamId: null };
+  const legacyExam = createExamRecord({
+    id: 'legacy-current',
+    name: '原有成绩',
+    date: new Date().toISOString().slice(0, 10),
+    students: legacyStudents,
+    sourceName: '旧版数据自动迁移'
+  });
+  return { exams: [legacyExam], activeExamId: legacyExam.id };
+}
+
+export function getStudentExamHistory(exams, studentName, subject = '综合') {
+  return [...(exams || [])]
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)) || String(a.createdAt).localeCompare(String(b.createdAt)))
+    .map((exam) => {
+      const student = exam.students.find((item) => item.name === studentName);
+      if (!student) return null;
+      const rawValue = subject === '综合' ? studentPerformanceIndex(student) : student.scores?.[subject];
+      const numericValue = subject === '综合' ? rawValue : gradeValue(rawValue);
+      if (numericValue === null || !numericValue) return null;
+      return { examId: exam.id, examName: exam.name, date: exam.date, value: rawValue, numericValue };
+    })
+    .filter(Boolean)
+    .map((item, index, history) => ({
+      ...item,
+      change: index === 0 ? null : Number((item.numericValue - history[index - 1].numericValue).toFixed(1))
+    }));
+}
+
+export function getStudentExamChange(exams, activeExamId, studentName, subject = '综合') {
+  const activeHistory = getStudentExamHistory(exams, studentName, subject).find((item) => item.examId === activeExamId);
+  return activeHistory?.change ?? null;
+}
+
 export function parseClassSheetRows(rows, expectedClass = '七年级15班') {
   if (!Array.isArray(rows) || rows.length < 2) throw new Error('工作表中没有可导入的学生记录');
   const headers = rows[0].map((cell) => String(cell ?? '').trim());

@@ -26,7 +26,7 @@ create index if not exists classroom_members_user_id_idx
 create table if not exists public.classroom_states (
   classroom_id uuid primary key references public.classrooms(id) on delete cascade,
   revision bigint not null default 1,
-  payload jsonb not null default '{"students":[],"seats":[],"tasks":[],"schedule":[]}'::jsonb,
+  payload jsonb not null default '{"students":[],"exams":[],"activeExamId":null,"seats":[],"tasks":[],"schedule":[]}'::jsonb,
   updated_by uuid references auth.users(id),
   updated_at timestamptz not null default now()
 );

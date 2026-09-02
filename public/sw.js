@@ -1,4 +1,4 @@
-const CACHE = 'qinghe-workbench-v1';
+const CACHE = 'qinghe-workbench-v2';
 const SCOPE = new URL('./', self.location.href).pathname;
 const APP_SHELL = [SCOPE, `${SCOPE}index.html`, `${SCOPE}manifest.webmanifest`, `${SCOPE}app-icon.svg`];
 
